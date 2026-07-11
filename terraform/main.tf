@@ -76,18 +76,18 @@ module "ecs" {
   cluster_capacity_providers = ["FARGATE", "FARGATE_SPOT"]
 
   # The strategy layout for the cluster
-  default_capacity_provider_strategy = [
-    {
+  default_capacity_provider_strategy = {
+    fargate = {
       capacity_provider = "FARGATE"
-      base              = 1 # Always keep 1 container completely stable on premium compute
-      weight            = 0 # Don't spin up any extra regular ones
-    },
-    {
+      base              = 1
+      weight            = 0
+    }
+    fargate_spot = {
       capacity_provider = "FARGATE_SPOT"
       base              = 0
-      weight            = 100 # All additional scaling is handled by cheap spot instances
+      weight            = 100
     }
-  ]
+  }
 
   services = {
     notes-service = {
