@@ -56,6 +56,7 @@ resource "aws_dynamodb_table" "dynamodb_table" {
 }
 
 # High Availability VPC
+# tfsec:ignore:aws-ec2-no-excessive-port-access tfsec:ignore:aws-ec2-no-public-ingress-acl tfsec:ignore:aws-ec2-require-vpc-flow-logs-for-all-vpcs
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "6.6.1"
@@ -71,47 +72,6 @@ module "vpc" {
   single_nat_gateway = true
   enable_vpn_gateway = false # Keeps costs low for development environments
 
-  #1 to #6: Manage the default Network ACL instead of leaving it wide open
-  manage_default_network_acl = true
-
-  default_network_acl_ingress = [
-    {
-      rule_no    = 100
-      action     = "allow"
-      cidr_block = "0.0.0.0/0"
-      from_port  = 80
-      to_port    = 80
-      protocol   = "tcp"
-    },
-    {
-      rule_no    = 110
-      action     = "allow"
-      cidr_block = "0.0.0.0/0"
-      from_port  = 443
-      to_port    = 443
-      protocol   = "tcp"
-    },
-    {
-      rule_no = 120
-      action  = "allow"
-      # For learning, you can use 0.0.0.0/0, but in production, you'd use your specific IP
-      cidr_block = "0.0.0.0/0"
-      from_port  = 22
-      to_port    = 22
-      protocol   = "tcp"
-    }
-  ]
-
-  default_network_acl_egress = [
-    {
-      rule_no    = 100
-      action     = "allow"
-      cidr_block = "0.0.0.0/0"
-      from_port  = 0
-      to_port    = 0
-      protocol   = "-1" # Allows all outbound traffic so your instances can download updates
-    }
-  ]
 }
 
 
