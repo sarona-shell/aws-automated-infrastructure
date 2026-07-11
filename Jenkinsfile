@@ -23,21 +23,21 @@ pipeline {
         }
         stage('Build App & Push to ECR') {
             steps {
-        // 1. Build the local docker image from your app folder
-                sh 'docker build -t $IMAGE_REPO_NAME ./django-notes-app'
+                // 1. Build local docker image
+                sh "docker build -t \$IMAGE_REPO_NAME ./django-notes-app"
 
-        // 2. Log into Amazon ECR securely using your AWS environment keys
-                sh 'aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com'
+                // 2. Log into Amazon ECR securely (This worked!)
+                sh "aws ecr get-login-password --region \${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin \${AWS_ACCOUNT_ID}.dkr.ecr.\${AWS_DEFAULT_REGION}.amazonaws.com"
 
-        // 3. Tag the image with the unique Git Commit ID (and as latest)
-                sh "docker tag $IMAGE_REPO_NAME:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:${GIT_COMMIT}"
-                sh 'docker tag $IMAGE_REPO_NAME:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest'
+                // 3. Tag the image with Git Commit ID and latest (Added curly braces here)
+                sh "docker tag \${IMAGE_REPO_NAME}:latest \${AWS_ACCOUNT_ID}.dkr.ecr.\${AWS_DEFAULT_REGION}.amazonaws.com/\${IMAGE_REPO_NAME}:\${GIT_COMMIT}"
+                sh "docker tag \${IMAGE_REPO_NAME}:latest \${AWS_ACCOUNT_ID}.dkr.ecr.\${AWS_DEFAULT_REGION}.amazonaws.com/\text{\${IMAGE_REPO_NAME}}:latest"
 
-        // 4. Push both tags to your ECR Repository
-                sh "docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:${GIT_COMMIT}"
-                sh 'docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest'
-    }
-}
+                // 4. Push tags to ECR Repository (Added curly braces here)
+                sh "docker push \text{\${AWS_ACCOUNT_ID}}.dkr.ecr.\text{\${AWS_DEFAULT_REGION}}.amazonaws.com/\text{\${IMAGE_REPO_NAME}}:\text{\${GIT_COMMIT}}"
+                sh "docker push \text{\${AWS_ACCOUNT_ID}}.dkr.ecr.\text{\${AWS_DEFAULT_REGION}}.amazonaws.com/\text{\${IMAGE_REPO_NAME}}:latest"
+            }
+        }
         stage('Terraform Plan') {
             steps {
                 dir('terraform') {
