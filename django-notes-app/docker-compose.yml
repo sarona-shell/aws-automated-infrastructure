@@ -1,0 +1,11 @@
+version: "3.3"
+
+services:
+  web:
+    build: .  # Tells Docker to build the Dockerfile in the current directory
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app  # Mounts your local code into the container for easy development
+    environment:
+      - PYTHONUNBUFFERED=1
