@@ -24,18 +24,18 @@ pipeline {
         stage('Build App & Push to ECR') {
             steps {
                 // 1. Build local docker image
-                sh "docker build -t \$IMAGE_REPO_NAME ./django-notes-app"
+                sh "docker build -t django-notes-app ./django-notes-app"
 
                 // 2. Log into Amazon ECR securely
-                sh "aws ecr get-login-password --region \${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin \text{\${AWS_ACCOUNT_ID}}.dkr.ecr.\text{\${AWS_DEFAULT_REGION}}.amazonaws.com"
+                sh "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 985977710228.dkr.ecr.us-east-1.amazonaws.com"
 
                 // 3. Tag the image with Git Commit ID and latest
-                sh "docker tag \${IMAGE_REPO_NAME}:latest \${AWS_ACCOUNT_ID}.dkr.ecr.\${AWS_DEFAULT_REGION}.amazonaws.com/\${IMAGE_REPO_NAME}:\${GIT_COMMIT}"
-                sh "docker tag \${IMAGE_REPO_NAME}:latest \${AWS_ACCOUNT_ID}.dkr.ecr.\${AWS_DEFAULT_REGION}.amazonaws.com/\${IMAGE_REPO_NAME}:latest"
+                sh "docker tag django-notes-app:latest 985977710228.dkr.ecr.us-east-1.amazonaws.com/django-notes-app:${GIT_COMMIT}"
+                sh "docker tag django-notes-app:latest 985977710228.dkr.ecr.us-east-1.amazonaws.com/django-notes-app:latest"
 
                 // 4. Push tags to ECR Repository
-                sh "docker push \${AWS_ACCOUNT_ID}.dkr.ecr.\${AWS_DEFAULT_REGION}.amazonaws.com/\${IMAGE_REPO_NAME}:\text{\${GIT_COMMIT}}"
-                sh "docker push \${AWS_ACCOUNT_ID}.dkr.ecr.\${AWS_DEFAULT_REGION}.amazonaws.com/\${IMAGE_REPO_NAME}:latest"
+                sh "docker push 985977710228.dkr.ecr.us-east-1.amazonaws.com/django-notes-app:${GIT_COMMIT}"
+                sh "docker push 985977710228.dkr.ecr.us-east-1.amazonaws.com/django-notes-app:latest"
             }
         }
         stage('Terraform Plan') {
