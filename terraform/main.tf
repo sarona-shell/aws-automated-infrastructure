@@ -31,8 +31,8 @@ resource "aws_dynamodb_table" "dynamodb_table" {
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "6.6.1"
-  name = "note-app-${var.environment}"
-  cidr = var.vpc_cidr
+  name    = "note-app-${var.environment}"
+  cidr    = var.vpc_cidr
 
   # Dynamically fetch AZs based on the selected region
   azs             = ["${var.aws_region}a", "${var.aws_region}b", "${var.aws_region}c"]
@@ -55,9 +55,9 @@ module "alb" {
 
   target_groups = {
     ecs_tasks = {
-      backend_protocol = "HTTP"
-      backend_port     = var.container_port
-      target_type      = "ip"
+      backend_protocol  = "HTTP"
+      backend_port      = var.container_port
+      target_type       = "ip"
       create_attachment = false # Critical: Tells ALB module NOT to manually attach targets since ECS does it dynamically
       health_check = {
         path = "/"
@@ -72,15 +72,15 @@ module "ecs" {
 
   cluster_name = "notes-app-cluster-${var.environment}"
 
-# Tell the cluster it's allowed to use both standard and spot capacity
- cluster_capacity_providers = ["FARGATE", "FARGATE_SPOT"]
+  # Tell the cluster it's allowed to use both standard and spot capacity
+  cluster_capacity_providers = ["FARGATE", "FARGATE_SPOT"]
 
- # The strategy layout for the cluster
+  # The strategy layout for the cluster
   default_capacity_provider_strategy = [
     {
       capacity_provider = "FARGATE"
-      base              = 1   # Always keep 1 container completely stable on premium compute
-      weight            = 0   # Don't spin up any extra regular ones
+      base              = 1 # Always keep 1 container completely stable on premium compute
+      weight            = 0 # Don't spin up any extra regular ones
     },
     {
       capacity_provider = "FARGATE_SPOT"
@@ -91,26 +91,26 @@ module "ecs" {
 
   services = {
     notes-service = {
-  # Service-level configurations
+      # Service-level configurations
       cpu        = var.container_cpu
       memory     = var.container_memory
       subnet_ids = module.vpc.private_subnets
-      
+
       container_definitions = {
         django-notes-app = {
           image     = "${aws_ecr_repository.app_repo.repository_url}:latest"
           essential = true
           port_mappings = [
             {
-              name          = "django-notes-app"
+              name           = "django-notes-app"
               container_port = var.container_port
-              protocol      = "tcp"
+              protocol       = "tcp"
             }
           ]
         }
       }
 
-      
+
       load_balancer = {
         service = {
           target_group_arn = module.alb.target_groups["ecs_tasks"].arn

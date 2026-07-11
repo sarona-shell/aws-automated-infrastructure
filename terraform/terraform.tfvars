@@ -1,6 +1,6 @@
 # Regional Settings
-aws_region  = "us-east-1"
-environment = "dev"
+aws_region     = "us-east-1"
+environment    = "dev"
 bucket         = "my-django-note-bucket-sarona-2026"
 dynamodb_table = "terraform-state-locking"
 # Network IP Layout
