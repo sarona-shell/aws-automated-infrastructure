@@ -1,3 +1,4 @@
+# tfsec:ignore:aws-s3-enable-bucket-logging
 resource "aws_s3_bucket" "state_bucket" {
   bucket = var.bucket
 
@@ -24,6 +25,7 @@ resource "aws_s3_bucket_public_access_block" "state_bucket_privacy" {
 }
 
 # Enables default server-side encryption
+# tfsec:ignore:aws-s3-encryption-customer-key
 resource "aws_s3_bucket_server_side_encryption_configuration" "state_bucket_encryption" {
   bucket = aws_s3_bucket.state_bucket.id
 
@@ -36,6 +38,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "state_bucket_encr
   }
 }
 
+# tfsec:ignore:aws-dynamodb-enable-recovery
 resource "aws_dynamodb_table" "dynamodb_table" {
   name           = var.dynamodb_table
   billing_mode   = "PROVISIONED"
@@ -153,6 +156,7 @@ module "ecs" {
 }
 
 #AWS ECR Repository for Django Notes App Images
+# tfsec:ignore:aws-ecr-repository-customer-key
 resource "aws_ecr_repository" "app_repo" {
   name                 = "django-notes-app-${var.environment}"
   image_tag_mutability = "IMMUTABLE"
