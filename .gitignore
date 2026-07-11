@@ -1,0 +1,15 @@
+# Local Terraform directories & caches
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.tfstate.lock.info
+.terraform.lock.hcl
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Docker & Python/Django local cache files (if applicable)
+__pycache__/
+*.pyc
+.env
