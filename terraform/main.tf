@@ -14,6 +14,28 @@ resource "aws_s3_bucket_versioning" "versioning_example" {
   }
 }
 
+# Blocks all public access to the state bucket
+resource "aws_s3_bucket_public_access_block" "state_bucket_privacy" {
+  bucket                  = aws_s3_bucket.state_bucket.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+# Enables default server-side encryption
+resource "aws_s3_bucket_server_side_encryption_configuration" "state_bucket_encryption" {
+  bucket = aws_s3_bucket.state_bucket.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      # For standard security, AES256 works. 
+      # Change to "aws:kms" if you wish to use a Customer Managed Key (CMK) to clear #12 entirely.
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
 resource "aws_dynamodb_table" "dynamodb_table" {
   name           = var.dynamodb_table
   billing_mode   = "PROVISIONED"
@@ -24,6 +46,12 @@ resource "aws_dynamodb_table" "dynamodb_table" {
   attribute {
     name = "LockId"
     type = "S"
+  }
+
+  #Enables server-side encryption using the AWS managed key
+  server_side_encryption {
+    enabled     = true
+    kms_key_arn = null # Defaults to the AWS managed DynamoDB key
   }
 }
 
@@ -43,7 +71,49 @@ module "vpc" {
   single_nat_gateway = true
   enable_vpn_gateway = false # Keeps costs low for development environments
 
+  #1 to #6: Manage the default Network ACL instead of leaving it wide open
+  manage_default_network_acl = true
+
+  default_network_acl_ingress = [
+    {
+      rule_no    = 100
+      action     = "allow"
+      cidr_block = "0.0.0.0/0"
+      from_port  = 80
+      to_port    = 80
+      protocol   = "tcp"
+    },
+    {
+      rule_no    = 110
+      action     = "allow"
+      cidr_block = "0.0.0.0/0"
+      from_port  = 443
+      to_port    = 443
+      protocol   = "tcp"
+    },
+    {
+      rule_no = 120
+      action  = "allow"
+      # For learning, you can use 0.0.0.0/0, but in production, you'd use your specific IP
+      cidr_block = "0.0.0.0/0"
+      from_port  = 22
+      to_port    = 22
+      protocol   = "tcp"
+    }
+  ]
+
+  default_network_acl_egress = [
+    {
+      rule_no    = 100
+      action     = "allow"
+      cidr_block = "0.0.0.0/0"
+      from_port  = 0
+      to_port    = 0
+      protocol   = "-1" # Allows all outbound traffic so your instances can download updates
+    }
+  ]
 }
+
 
 module "alb" {
   source  = "terraform-aws-modules/alb/aws"
@@ -125,7 +195,7 @@ module "ecs" {
 #AWS ECR Repository for Django Notes App Images
 resource "aws_ecr_repository" "app_repo" {
   name                 = "django-notes-app-${var.environment}"
-  image_tag_mutability = "MUTABLE"
+  image_tag_mutability = "IMMUTABLE"
 
   # Security Scan on Push: Instantly flags vulnerabilities in container dependencies
   image_scanning_configuration {
