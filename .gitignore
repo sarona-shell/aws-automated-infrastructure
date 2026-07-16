@@ -3,7 +3,7 @@
 *.tfstate
 *.tfstate.backup
 .terraform.tfstate.lock.info
-.terraform.lock.hcl
+
 
 # OS generated files
 .DS_Store
@@ -13,3 +13,16 @@ Thumbs.db
 __pycache__/
 *.pyc
 .env
+
+# Jenkins test reports and workspace files
+*.xml
+*.log
+htmlreports/
+
+# tfsec report outputs (if you save scans to files)
+tfsec-report.*
+
+# Application secrets (expanding on your .env rule)
+*.env
+*.secret
+credentials.json
