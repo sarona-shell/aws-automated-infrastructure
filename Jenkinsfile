@@ -37,7 +37,7 @@ pipeline {
             steps {
                 withAWS(region: "${AWS_DEFAULT_REGION}") {
                     
-                    // 1. Authenticate Docker with AWS ECR (Crucial Missing Step!)
+                    // 1. Authenticate Docker with AWS ECR 
                     sh "aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
 
                     // 2. Build local docker image
