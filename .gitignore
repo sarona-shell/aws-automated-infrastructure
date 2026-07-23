@@ -1,28 +1,48 @@
-# Local Terraform directories & caches
+# ==========================================
+# Terraform Cache, State & Secret Files
+# ==========================================
 .terraform/
 *.tfstate
 *.tfstate.backup
 .terraform.tfstate.lock.info
+*.tfvars
+*.tfvars.json
+tfplan
+*.tfplan
 
-
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# Docker & Python/Django local cache files (if applicable)
-__pycache__/
-*.pyc
+# ==========================================
+# Application Secrets & Credentials
+# ==========================================
 .env
-
-# Jenkins test reports and workspace files
-*.xml
-*.log
-htmlreports/
-
-# tfsec report outputs (if you save scans to files)
-tfsec-report.*
-
-# Application secrets (expanding on your .env rule)
 *.env
 *.secret
 credentials.json
+
+# ==========================================
+# OS & IDE Junk Files
+# ==========================================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# ==========================================
+# Python & Django Local Artifacts
+# ==========================================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+*.log
+local_settings.py
+
+# ==========================================
+# Jenkins & CI/CD Reports
+# ==========================================
+*.xml
+htmlreports/
+tfsec-report.*

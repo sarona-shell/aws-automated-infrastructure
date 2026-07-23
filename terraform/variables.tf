@@ -47,3 +47,9 @@ variable "container_memory" {
   type        = number
   description = "Fargate task memory allocation in MB."
 }
+
+variable "alert_email" {
+  type        = string
+  description = "The operational email address to receive CloudWatch alerts."
+  sensitive   = true # Hides the email value from terraform plan outputs
+}

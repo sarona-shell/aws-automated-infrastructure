@@ -99,11 +99,30 @@ module "alb" {
   }
 }
 
+# CloudWatch Log Group for Application Logs
+resource "aws_cloudwatch_log_group" "ecs_logs" {
+  name              = "/ecs/django-notes-app-${var.environment}"
+  retention_in_days = 30 # Retain logs for 30 days to manage storage costs
+
+  tags = {
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+  }
+}
+
 module "ecs" {
   source  = "terraform-aws-modules/ecs/aws"
   version = "~> 7.5.0"
 
   cluster_name = "notes-app-cluster-${var.environment}"
+
+  # Enable Container Insights for built-in container CPU, memory, and network metrics
+  cluster_setting = [
+    {
+      name  = "containerInsights"
+      value = "enabled"
+    }
+  ]
 
   # Tell the cluster it's allowed to use both standard and spot capacity
   cluster_capacity_providers = ["FARGATE", "FARGATE_SPOT"]
@@ -140,9 +159,18 @@ module "ecs" {
               protocol       = "tcp"
             }
           ]
+
+          # Log configuration for ECS tasks to send logs to CloudWatch
+          log_configuration = {
+            logDriver = "awslogs"
+            options = {
+              "awslogs-group"         = aws_cloudwatch_log_group.ecs_logs.name
+              "awslogs-region"        = var.aws_region
+              "awslogs-stream-prefix" = "django"
+            }
+          }
         }
       }
-
 
       load_balancer = {
         service = {
@@ -196,4 +224,92 @@ resource "aws_ecr_lifecycle_policy" "repo_policy" {
     ]
 }
 EOF
+}
+
+# SNS Topic for Monitoring Alerts
+resource "aws_sns_topic" "alerts" {
+  name = "django-app-alerts-${var.environment}"
+  
+}
+
+# Add your email address to receive alerts
+resource "aws_sns_topic_subscription" "email_alerts" {
+  topic_arn = aws_sns_topic.alerts.arn
+  protocol = "email"
+  endpoint  = var.alert_email # Add respective email addresses to receive alerts.
+}
+
+# Alarm 1: High CPU Utilization on ECS Tasks
+resource "aws_cloudwatch_metric_alarm" "ecs_high_cpu" {
+  alarm_name                = "ecs-high-cpu-${var.environment}"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = 2
+  metric_name               = "CPUUtilization"
+  namespace                 = "AWS/ECS"
+  period                    = 60
+  statistic                 = "Average"
+  threshold                 = 85
+  alarm_description         = "Triggers when ECS CPU utilization exceeds 85% for 2 consecutive minutes."
+  alarm_actions             = [aws_sns_topic.alerts.arn]
+  
+  dimensions = {
+    ClusterName = module.ecs.cluster_name
+    ServiceName = "notes-service"
+  }
+}
+
+# Alarm 2: High Memory Utilization on ECS Tasks
+resource "aws_cloudwatch_metric_alarm" "ecs_high_memory" {
+  alarm_name          = "ecs-high-memory-${var.environment}"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = 2
+  metric_name         = "MemoryUtilization"
+  namespace           = "AWS/ECS"
+  period              = 60
+  statistic           = "Average"
+  threshold           = 85
+  alarm_description   = "Triggers when ECS Memory utilization exceeds 85% for 2 consecutive minutes."
+  alarm_actions       = [aws_sns_topic.alerts.arn]
+
+  dimensions = {
+    ClusterName = module.ecs.cluster_name
+    ServiceName = "notes-service"
+  }
+}
+
+# Alarm 3: Application Load Balancer HTTP 5XX Errors (Backend Failures)
+resource "aws_cloudwatch_metric_alarm" "alb_5xx_errors" {
+  alarm_name          = "alb-high-5xx-errors-${var.environment}"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "HTTPCode_Target_5XX_Count"
+  namespace           = "AWS/ApplicationELB"
+  period              = 60
+  statistic           = "Sum"
+  threshold           = 10
+  alarm_description   = "Triggers when ALB registers more than 10 5xx errors from Django in 1 minute."
+  alarm_actions       = [aws_sns_topic.alerts.arn]
+
+  dimensions = {
+    LoadBalancer = module.alb.arn_suffix
+  }
+}
+
+# Alarm 4: Zero Healthy Tasks in Target Group
+resource "aws_cloudwatch_metric_alarm" "no_healthy_tasks" {
+  alarm_name          = "alb-zero-healthy-tasks-${var.environment}"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "HealthyHostCount"
+  namespace           = "AWS/ApplicationELB"
+  period              = 60
+  statistic           = "Minimum"
+  threshold           = 1
+  alarm_description   = "CRITICAL: No healthy Django tasks are available to receive traffic!"
+  alarm_actions       = [aws_sns_topic.alerts.arn]
+
+  dimensions = {
+    TargetGroup  = module.alb.target_groups["ecs_tasks"].arn_suffix
+    LoadBalancer = module.alb.arn_suffix
+  }
 }
