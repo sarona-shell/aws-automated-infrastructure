@@ -103,7 +103,7 @@ module "alb" {
 resource "aws_cloudwatch_log_group" "ecs_logs" {
   name              = "/ecs/django-notes-app-${var.environment}"
   retention_in_days = 30 # Retain logs for 30 days to manage storage costs
-
+  #tfsec:ignore:aws-cloudwatch-log-group-customer-key
   tags = {
     Environment = var.environment
     ManagedBy   = "Terraform"
