@@ -34,9 +34,7 @@ pipeline {
         }
         
         stage('Build App & Push to ECR') {
-            steps {
-                withAWS(region: "${AWS_DEFAULT_REGION}") {
-                    
+            steps {         
                     // 1. Authenticate Docker with AWS ECR 
                     sh "aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
 
@@ -50,19 +48,16 @@ pipeline {
                     // 4. Push tags to ECR Repository
                     sh "docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}:${GIT_COMMIT}"
                     sh "docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}:latest"
-                }
-            }
+                }         
         }
         
         stage('Terraform Plan') {
             steps {
                 dir('terraform') {
-                    withAWS(region: "${AWS_DEFAULT_REGION}") {
                         sh 'terraform init'
                         sh 'terraform plan -out=tfplan'
                     }
                 }
-            }
         }
         
         stage('Deploy Infrastructure') {
