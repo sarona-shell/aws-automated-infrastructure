@@ -229,7 +229,7 @@ EOF
 # SNS Topic for Monitoring Alerts
 resource "aws_sns_topic" "alerts" {
   name = "django-app-alerts-${var.environment}"
-
+  kms_master_key_id = "alias/aws/sns"
 }
 
 # Add your email address to receive alerts
