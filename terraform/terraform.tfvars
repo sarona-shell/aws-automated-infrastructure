@@ -1,0 +1,11 @@
+aws_region           = "us-east-1"
+bucket               = "terraform-state-bucket-sarona-2026"
+dynamodb_table       = "django-notes-locks"
+environment          = "dev"
+vpc_cidr             = "10.0.0.0/16"
+public_subnet_cidrs  = ["10.0.1.0/24", "10.0.2.0/24"]
+private_subnet_cidrs = ["10.0.3.0/24", "10.0.4.0/24"]
+container_port       = 8000
+container_cpu        = 256
+container_memory     = 512
+alert_email          = "sarona25mgr@outlook.com"
