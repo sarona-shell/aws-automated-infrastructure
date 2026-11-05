@@ -229,29 +229,29 @@ EOF
 # SNS Topic for Monitoring Alerts
 resource "aws_sns_topic" "alerts" {
   name = "django-app-alerts-${var.environment}"
-  
+
 }
 
 # Add your email address to receive alerts
 resource "aws_sns_topic_subscription" "email_alerts" {
   topic_arn = aws_sns_topic.alerts.arn
-  protocol = "email"
+  protocol  = "email"
   endpoint  = var.alert_email # Add respective email addresses to receive alerts.
 }
 
 # Alarm 1: High CPU Utilization on ECS Tasks
 resource "aws_cloudwatch_metric_alarm" "ecs_high_cpu" {
-  alarm_name                = "ecs-high-cpu-${var.environment}"
-  comparison_operator       = "GreaterThanOrEqualToThreshold"
-  evaluation_periods        = 2
-  metric_name               = "CPUUtilization"
-  namespace                 = "AWS/ECS"
-  period                    = 60
-  statistic                 = "Average"
-  threshold                 = 85
-  alarm_description         = "Triggers when ECS CPU utilization exceeds 85% for 2 consecutive minutes."
-  alarm_actions             = [aws_sns_topic.alerts.arn]
-  
+  alarm_name          = "ecs-high-cpu-${var.environment}"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = 2
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/ECS"
+  period              = 60
+  statistic           = "Average"
+  threshold           = 85
+  alarm_description   = "Triggers when ECS CPU utilization exceeds 85% for 2 consecutive minutes."
+  alarm_actions       = [aws_sns_topic.alerts.arn]
+
   dimensions = {
     ClusterName = module.ecs.cluster_name
     ServiceName = "notes-service"
