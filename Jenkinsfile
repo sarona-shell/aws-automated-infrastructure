@@ -66,11 +66,9 @@ pipeline {
                 dir('terraform') {
                     input message: 'Approve infrastructure deployment?'
                     
-                    withAWS(region: "${AWS_DEFAULT_REGION}") {
-                        sh 'terraform apply -auto-approve tfplan'
+                    sh 'terraform apply -auto-approve tfplan'
                     }
                 }
             }
-        }
     }
 }
