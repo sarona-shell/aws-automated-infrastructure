@@ -61,7 +61,6 @@ pipeline {
         }
         
         stage('Deploy Infrastructure') {
-            when { branch 'main' }
             steps {
                 dir('terraform') {
                     input message: 'Approve infrastructure deployment?'
