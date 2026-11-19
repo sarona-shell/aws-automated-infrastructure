@@ -39,7 +39,7 @@ The Jenkins declarative pipeline executes the following structural phases:
 
 5.Terraform Initialization: Prepares the workspace, initializes providers, and verifies backend modules.
 
-6.Terraform Validation & Plan: Runs speculative execution checks to map out exactly 48 infrastructure components safely prior to live deployment.
+6.Terraform Validation & Plan: Runs speculative execution checks to map out infrastructure components safely prior to live deployment.
 
 
 
@@ -61,7 +61,6 @@ When executed, the IaC manifests construct a highly available, enterprise-grade 
 
 Building this pipeline required solving real-world systems engineering bottlenecks:
 
-1.Disk Space Quotas: Resolved Jenkins server execution blocks by adjusting disk monitor constraints (Free Space Threshold limits) and implementing aggressive container system pruning (docker system prune).
+Disk Space Quotas: Resolved Jenkins server execution blocks by adjusting disk monitor constraints (Free Space Threshold limits) and implementing aggressive container system pruning (docker system prune).
 
-2.Session Integrity & Access Routing: Handled dynamic AWS IP address rotation issues by isolating cached browser artifacts and establishing proper configuration file checks (config.xml).
 
