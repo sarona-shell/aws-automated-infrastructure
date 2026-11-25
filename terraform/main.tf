@@ -67,7 +67,7 @@ module "vpc" {
   cidr    = var.vpc_cidr
 
   # Dynamically fetch AZs based on the selected region
-  azs             = ["${var.aws_region}a", "${var.aws_region}b", "${var.aws_region}c"]
+  azs             = ["${var.aws_region}a", "${var.aws_region}b"]
   private_subnets = var.private_subnet_cidrs
   public_subnets  = var.public_subnet_cidrs
 
